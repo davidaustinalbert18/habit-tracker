@@ -1,4 +1,4 @@
-##### My Capstone Project: Habit Tracker
+# My Capstone Project: Habit Tracker
 Habit Tracker is a web application that allows users to create, track, and manage their personal habits. Users can set goals, mark habits as completed, monitor their streaks, and view statistics for their progress. The app is designed to encourage consistency and accountability for daily, weekly, or monthly habits.
 
 ### Distinctiveness and Complexity
