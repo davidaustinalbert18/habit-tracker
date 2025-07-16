@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+{% load math_filters %}
+<html>
+
+<head>
+    <title>Habit Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'tracker/style.css' %}">
+
+
+    <style>
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin: 8px 0;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #4caf50;
+            /* Green */
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            font-size: 12px;
+            white-space: nowrap;
+
+            transition: width 0.6s ease-in-out;
+        }
+    </style>
+
+</head>
+<script>
+    window.addEventListener('load', () => {
+        const bars = document.querySelectorAll('.progress-bar');
+        bars.forEach(bar => {
+            const percent = bar.getAttribute('data-percent');
+            bar.style.width = percent + '%';
+        });
+    });
+</script>
+
+<body>
+
+    <h1>{{ user.username }} Habit Dashboard</h1>
+
+    <p>
+        <div>
+            Welcome, {{ user.username }} | 
+            <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </p>
+    <p><a href="{% url 'stats' %}"><button type="button">📊 View Progress Stats</button></a></p>
+    <form method="get" action="">
+        <label for="sort">Sort by:</label>
+        <select name="sort" id="sort">
+            <option value="" {% if not sort %}selected{% endif %}>-- Select --</option>
+            <option value="name" {% if sort == "name" %}selected{% endif %}>Name (A-Z)</option>
+            <option value="streak" {% if sort == "streak" %}selected{% endif %}>Streak (High → Low)</option>
+            <option value="created" {% if sort == "created" %}selected{% endif %}>Date Created (Newest First)</option>
+        </select>
+
+
+        <label for="frequency">Filter by Frequency:</label>
+        <select name="frequency" id="frequency">
+            <option value="">-- All --</option>
+            <option value="Daily" {% if request.GET.frequency == "Daily" %}selected{% endif %}>Daily</option>
+            <option value="Weekly" {% if request.GET.frequency == "Weekly" %}selected{% endif %}>Weekly</option>
+            <option value="Monthly" {% if request.GET.frequency == "Monthly" %}selected{% endif %}>Monthly</option>
+        </select>
+
+        <button type="submit">Apply</button>
+
+        <a href="{% url 'index' %}" style="margin-left: 10px; text-decoration: none;">
+            <button type="button">Reset Sorting and Filters</button>
+        </a>
+    </form>
+    <h2>
+        Your Habits 
+        {% if sort %} <!-- If the list is being sorted by something... -->
+            {% if frequency %} <!-- and if the list is being filtered by a frequency... -->
+                (Sorted by {{ sort }} and Filtered by {{ frequency }})
+            {% else %} <!-- If the list is being sorted but not filtered... -->
+                (Sorted by {{ sort }})
+            {% endif %}
+        {% elif frequency %} <!-- If the list isn't being sorted and is only being filtered... -->
+            (Filtered by {{ frequency }})
+        {% endif %}
+    </h2>
+    {% if habit_data %}
+    <ul>
+        {% for item in habit_data %} <!-- For each habit in our database, call it an item... -->
+            {% with habit=item.habit %} <!-- The actual habit will be called "habit" -->
+                <li>
+                    <strong>{{ habit.name }}</strong> - {{ habit.frequency }}<br> <!-- Example Habit #1 - weekly -->
+                    {{ habit.description }}<br> <!-- This is example habit #1 -->
+                    🔥 Streak: {{ item.streak }}
+                        {% if habit.frequency == 'Daily' %}
+                            days
+                        {% elif habit.frequency == 'Weekly' %}
+                            weeks
+                        {% elif habit.frequency == 'Monthly' %}
+                            months
+                        {% endif %}
+                    
+                    <br> <!-- 🔥 Streak: day -->
+                    {% if habit.logs.last and habit.logs.last.date_completed == today %} <!-- If there is a last log for this habit AND if the habit was completed for today (= return true) -->
+                        ✅ Completed today
+                        <form method="post" action="{% url 'unmark_completed' habit.id %}" onsubmit="disableButton(this)">
+                            {% csrf_token %}
+                            <button type="submit">Undo</button>
+                        </form>
+                    {% else %} <!-- If the habit has not been completed for today... -->
+                        <form method="post" action="{% url 'mark_completed' habit.id %}" style="display:inline;" onsubmit="disableButton(this)">
+                            {% csrf_token %}
+                            <button type="submit">Mark as Completed</button>
+                        </form>
+                    {% endif %}
+                    {% if habit.goal_total %}
+                        <p>🎯 Goal: {{ habit.goal_total }} completions</p>
+                        {% with habit.logs.count as completed %}
+                            {% with completed|mul:100 as completed_percent %}
+                                {% with completed_percent|div:habit.goal_total as percent %}
+                                    <div class="progress-container">
+                                        <div class="progress-bar" data-percent="{{ percent }}" style="width: 0%">
+                                            {{ completed }}/{{ habit.goal_total }}
+                                        </div>
+                                    </div>
+                                    {% if completed >= habit.goal_total %}
+                                        <strong>🎉 Goal met!</strong>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endwith %}
+                        {% endwith %}
+                    {% endif %}
+
+
+                    <a href="{% url 'edit_habit' habit.id %}"><button type="button">✏️ Edit</button></a> |
+                    <a href="{% url 'delete_habit' habit.id %}"><button type="button">🗑️ Delete</button></a>
+                </li>
+            {% endwith %}
+            <br>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>You haven't added any habits yet.</p>
+    {% endif %}
+
+    <a href="{% url 'create_habit' %}"><button type="button">+ Add New Habit</button></a>
+    <script>
+        function disableButton(form) {
+            const button = form.querySelector("button[type='submit']");
+            button.disabled = true;
+            button.innerText = 'Marking...';
+        }
+    </script>
+</body>
+
+</html>

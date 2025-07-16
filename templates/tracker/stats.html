@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Progress Stats</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'tracker/style.css' %}">
+    <style>
+        table {
+            font-size: 18px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Your Progress Stats</h1>
+    <p><a href="{% url 'index' %}"><button type="button">← Back to Dashboard</button></a></p>
+
+    {% if stats_data %}
+    <table border="1">
+        <tr>
+            <th>Habit</th>
+            <th>Completed Days</th>
+            <th>Total Days</th>
+            <th>Completion Rate</th>
+            <th>Current Streak</th>
+            <th>Goals</th>
+        </tr>
+        {% for stat in stats_data %}
+        <tr>
+            <td>{{ stat.habit.name }}</td>
+            <td>{{ stat.completed_days }}</td>
+            <td>{{ stat.total_days }}</td>
+            <td>{{ stat.completion_rate }}%</td>
+            <td>{{ stat.current_streak }}</td>
+            <td>
+                {% if stat.goal_total %}
+                {{ stat.completed_days }} / {{ stat.goal_total }}
+                {% if stat.goal_met %} 🎉 {% endif %}
+                {% else %}
+                —
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No stats yet. Add some habits!</p>
+    {% endif %}
+</body>
+
+</html>

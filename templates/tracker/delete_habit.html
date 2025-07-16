@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Delete Habit</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'tracker/style.css' %}">
+    </head>
+    <body>
+        <h1>Are you sure you want to delete "{{ habit.name }}"?</h1>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit">Yes, delete it</button>
+        </form>
+        <p>
+            <a href="{% url 'index' %}"><button type="submit">No! (Back to Dashboard)</button></a>
+        </p>
+    </body>
+</html>

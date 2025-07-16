@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Create New Habit</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'tracker/style.css' %}">
+</head>
+
+<body>
+    <h1>Create a New Habit</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create Habit</button>
+    </form>
+    <p>
+        <a href="{% url 'index' %}">← Back to Dashboard</a>
+    </p>
+</body>
+
+</html>
